@@ -64,18 +64,19 @@ cv2.rectangle(imganh1,(faceanh1[1],faceanh1[0]),(faceanh1[3],faceanh1[2]),(255,0
     #2: Đây là độ dày của viền của hình chữ nhật.
     => Dòng mã này vẽ một hình chữ nhật xung quanh khuôn mặt được xác định bởi faceanh1 trên hình ảnh imganh1
 '''
-'''
+
 face_distance1 = face_recognition.face_distance([encodeElon], encodeCheck)
 print("Điểm khác nhau:", face_distance1[0])
 # Kiểm tra điều kiện khớp (ví dụ: nếu điểm khác nhau nhỏ hơn 0.6 thì coi là khớp)
+#cách 1:dòng 72-77
 if face_distance1[0] < 0.5:
     face_distance=("[Khop]")
     print(face_distance)
 else:
     face_distance=("[Khong khop]")
     print(face_distance)
-cv2.putText(imgCheck,f"{face_distance}{(round(face_distance1[0],2))}",(50,50),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,255),2)
-'''
+cv2.putText(imganh1,f"{face_distance}{(round(face_distance1[0],2))}",(50,50),cv2.FONT_HERSHEY_COMPLEX,1,(0,0,255),2)
+#cách2:dòng 80-88
 # nó sẽ so sánh hình ảnh mã hóa với các điểm trên khuôn mặt xem có khớp o
 results = face_recognition.compare_faces([encodeElon],encodeCheck)
 print(results) # Kết quả True
