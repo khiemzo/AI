@@ -22,7 +22,7 @@ def detect_faces(image_path):
         x, y, w, h = (face.left(), face.top(), face.width(), face.height())
         face_roi = image[y:y + h, x:x + w]
 
-        # Nhận diện tuổi và giới tính
+        # Nhận diện tuổi và giới tính cuar nguoi
         age, gender = age_gender_classifier.predict(face_roi)
 
         # Hiển thị kết quả
