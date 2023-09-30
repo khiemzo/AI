@@ -1,7 +1,7 @@
 import face_recognition as fr
 import cv2
 import numpy as np
-import os
+import o
 
 # Define thông tin của các người cần nhận diện
 people_data = [
