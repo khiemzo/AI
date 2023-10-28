@@ -1,77 +1,70 @@
-import face_recognition as fr
+
+
+# pip install opencv-contrib-python # some people ask the difference between this and opencv-python
+                                    # and opencv-python contains the main packages wheras the other
+                                    # contains both main modules and contrib/extra modules
+# pip install cvlib # for object detection
+
+# # pip install gtts
+# # pip install playsound
+# use `pip3 install PyObjC` if you want playsound to run more efficiently.
+
 import cv2
-import numpy as np
-import os
-'''
-face_recognition: Thư viện chứa các hàm liên quan đến nhận diện và mã hóa khuôn mặt.
-cv2: Thư viện OpenCV dùng để xử lý hình ảnh.
-numpy as np: Thư viện hỗ trợ xử lý mảng nhiều chiều, cần thiết cho việc tính toán toán học.
-os: Thư viện hỗ trợ thao tác với hệ điều hành, trong trường hợp này dùng để tải danh sách hình ảnh từ thư mục.
-'''
-#Thiết lập đường dẫn và biến lưu thông tin người đã biết
-path = "./train/"
+import cvlib as cv
+from cvlib.object_detection import draw_bbox
+from gtts import gTTS
+from playsound import playsound
+#from food_facts import food_facts
 
-known_names = []
-known_name_encodings = []
-'''
-path: Đường dẫn đến thư mục chứa hình ảnh của những người đã biết.
-known_names: Danh sách tên của những người đã biết.
-known_name_encodings: Danh sách các mã hóa khuôn mặt của những người đã biết.
-'''
-images = os.listdir(path)
-for _ in images:
-    image = fr.load_image_file(path + _)
-    image_path = path + _
-    encoding = fr.face_encodings(image)[0]
+def speech(text):
+    print(text)
+    language = "en"
+    output = gTTS(text=text, lang=language, slow=False)
 
-    known_name_encodings.append(encoding)
-    known_names.append(os.path.splitext(os.path.basename(image_path))[0].capitalize())
-'''
-Duyệt qua tất cả các tệp hình ảnh trong thư mục train.
-Tải ảnh và lấy mã hóa khuôn mặt (nếu có).
-Thêm mã hóa khuôn mặt vào danh sách known_name_encodings.
-Trích xuất tên của người từ tên tệp và thêm vào danh sách known_names.
-'''
-print(known_names)
+    output.save("./sounds/output.mp3")
+    playsound("./sounds/output.mp3")
 
-test_image = "./test/test.jpg"
-image = cv2.imread(test_image)
-# image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-face_locations = fr.face_locations(image)
-face_encodings = fr.face_encodings(image, face_locations)
-'''
-Tải hình ảnh cần kiểm tra từ thư mục test.
-Sử dụng face_recognition để tìm vị trí của các khuôn mặt trong hình ảnh.
-'''
-for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
-    matches = fr.compare_faces(known_name_encodings, face_encoding)
-    name = ""
 
-    face_distances = fr.face_distance(known_name_encodings, face_encoding)
-    best_match = np.argmin(face_distances)
+video = cv2.VideoCapture(0)
+labels = []
 
-    if matches[best_match]:
-        name = known_names[best_match]
-'''
-Duyệt qua tất cả khuôn mặt được tìm thấy.
-So sánh khuôn mặt với danh sách người đã biết.
-Tìm người có khuôn mặt tương tự nhất.
-'''
-    cv2.rectangle(image, (left, top), (right, bottom), (0, 0, 255), 2)
-    cv2.rectangle(image, (left, bottom - 15), (right, bottom), (0, 0, 255), cv2.FILLED)
-    font = cv2.FONT_HERSHEY_DUPLEX
-    cv2.putText(image, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-'''
-Vẽ khung xung quanh khuôn mặt được nhận diện.
-Hiển thị tên của người đã biết lên hình ảnh.
-'''
+while True:
+    ret, frame = video.read()
+    # Bounding box.
+    # the cvlib library has learned some basic objects using object learning
+    # usually it takes around 800 images for it to learn what a phone is.
+    bbox, label, conf = cv.detect_common_objects(frame)
 
-cv2.imshow("Result", image)
-cv2.imwrite("./output.jpg", image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
-'''
-Hiển thị hình ảnh với kết quả đã được xử lý.
-Ghi kết quả vào một tệp tin hình ảnh mới.
-Chờ người dùng nhấn một phím bất kỳ để đóng cửa sổ hình ảnh.
-'''
+    output_image = draw_bbox(frame, bbox, label, conf)
+
+    cv2.imshow("Detection", output_image)
+
+    for item in label:
+        if item in labels:
+            pass
+        else:
+            labels.append(item)
+
+    if cv2.waitKey(1) & 0xFF == ord("q"):
+        break
+
+i = 0
+new_sentence = []
+for label in labels:
+    if i == 0:
+        new_sentence.append(f"I found a {label}, and, ")
+    else:
+        new_sentence.append(f"a {label},")
+
+    i += 1
+
+speech(" ".join(new_sentence))
+speech("Here are the food facts i found for these items:")
+
+for label in labels:
+    try:
+        print(f"\n\t{label.title()}")
+        #food_facts(label)
+
+    except:
+        print("No food facts for this item")
