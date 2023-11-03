@@ -42,6 +42,7 @@ THRESHOLD = 0.4  # Giá trị ngưỡng (có thể điều chỉnh)
 
 # Nhận diện khuôn mặt và vẽ thông tin người
 detected_names = []
+detected_faces = []  # Danh sách tọa độ các khuôn mặt đã nhận diện
 for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
     matches = fr.compare_faces(known_name_encodings, face_encoding, tolerance=THRESHOLD)
     #Dòng này so sánh mã hóa khuôn mặt của khuôn mặt hiện tại (face_encoding) với danh sách các mã hóa khuôn mặt đã biết (known_name_encodings).
@@ -57,6 +58,11 @@ for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodi
 
     detected_names.append(name)
     draw_name_frame(image, top, right, bottom, left, name)
+    detected_faces.append((top, right, bottom, left))  # Lưu tọa độ khuôn mặt
+    # In ra tọa độ các khuôn mặt
+print("Tọa độ các khuôn mặt:")
+for i, (top, right, bottom, left) in enumerate(set(detected_faces)):
+ print(f"Khuôn mặt {i + 1}: Top: {top}, Right: {right}, Bottom: {bottom}, Left: {left}")
 
 # Đếm số lượng người và số lượng người khác
 total_people = len(detected_names)
