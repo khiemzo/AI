@@ -6,14 +6,12 @@ import os
 from collections import defaultdict
 
 #['person', 'bicycle', 'car', 'motorbike', 'aeroplane', 'bus', 'train', 'truck', 'boat', 'traffic light', 'fire hydrant', 'stop sign', 'parking meter', 'bench', 'bird', 'cat', 'dog', 'horse', 'sheep', 'cow', 'elephant', 'bear', 'zebra', 'giraffe', 'backpack', 'umbrella', 'handbag', 'tie', 'suitcase', 'frisbee', 'skis', 'snowboard', 'sports ball', 'kite', 'baseball bat', 'baseball glove', 'skateboard', 'surfboard', 'tennis racket', 'bottle', 'wine glass', 'cup', 'fork', 'knife', 'spoon', 'bowl', 'banana', 'apple', 'sandwich', 'orange', 'broccoli', 'carrot', 'hot dog', 'pizza', 'donut', 'cake', 'chair', 'sofa', 'pottedplant', 'bed', 'diningtable', 'toilet', 'tvmonitor', 'laptop', 'mouse', 'remote', 'keyboard', 'cell phone', 'microwave', 'oven', 'toaster', 'sink', 'refrigerator', 'book', 'clock', 'vase', 'scissors', 'teddy bear', 'hair drier', 'toothbrush']
-
-
 button = Buttons()
 button.add_button("person", 20, 20)
 button.add_button("cell phone", 20, 100)
 button.add_button("keyboard", 20, 180)
-button.add_button("cat", 20, 260)
-button.add_button("dog", 20, 340)
+button.add_button("remote", 20, 260)
+button.add_button("cat", 20, 340)
 #Khởi tạo một đối tượng của lớp Buttons và thêm các nút vào đối tượng đó với tên và vị trí tương ứng.
 
 colors = button.colors
@@ -46,45 +44,12 @@ def click_button(event, x, y, flags, params):
     global button_person
     if event == cv2.EVENT_LBUTTONDOWN:
         button.button_click(x, y)
-#Định nghĩa hàm xử lý sự kiện khi người dùng nhấp chuột
-#Nếu nhấp chuột vào một nút, thực hiện hàm button_click để xử lý sự kiện.
 
-cv2.namedWindow("Frame")
-cv2.setMouseCallback("Frame", click_button)
-#Tạo một cửa sổ hiển thị hình ảnh và thiết lập hàm xử lý sự kiện chuột.
+        # Nhận diện khuôn mặt khi nhấp chuột vào nút "person"
+        if "person" in button.active_buttons_list():
+            # Gọi hàm nhận diện khuôn mặt từ chương trình 2
+            detected_names, detected_faces = detect_faces_in_image(frame)
 
-while True:
-    ret, frame = cap.read()
-    #Đọc khung hình từ webcam.
-
-    frame = cv2.flip(frame, 1)
-    #Đảo ngược ảnh.
-
-    active_buttons = button.active_buttons_list()
-    #Lấy danh sách các nút đang được kích hoạt.
-
-    (class_ids, scores, bboxes) = model.detect(frame, confThreshold=0.3, nmsThreshold=0.2)
-    #Sử dụng mô hình để nhận diện đối tượng trong khung hình.
-
-    for class_id, score, bbox in zip(class_ids, scores, bboxes):
-        (x, y, w, h) = bbox
-        class_name = classes[class_id]
-        color = colors[class_id]
-
-        if class_name in active_buttons:
-            cv2.putText(frame, class_name, (x, y - 10), cv2.FONT_HERSHEY_PLAIN, 3, (0, 255, 255), 2)
-            cv2.rectangle(frame, (x, y), (x + w, y + h), color, 3)
-    #Mỗi đối tượng được nhận diện, vẽ hình chữ nhật và hiển thị tên đối tượng nếu nút tương ứng được kích hoạt.
-
-    button.display_buttons(frame)
-    #Hiển thị các nút lên trên khung hình.
-
-    cv2.imshow("Frame", frame)
-    key = cv2.waitKey(1)
-    if key == 27:
-        break
-    #Hiển thị khung hình và thoát khỏi vòng lặp nếu người dùng nhấn phím ESC.
-
-cap.release()
-cv2.destroyAllWindows()
-#Giải phóng tài nguyên và đóng cửa sổ khi chương trình kết thúc
+            # Hiển thị kết quả lên video
+            for name, (top, right, bottom, left) in zip(detected_names, detected_faces):
+                draw_name_frame(frame, top, right, bottom, left, name)

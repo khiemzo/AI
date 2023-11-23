@@ -3,63 +3,87 @@ import cv2
 import numpy as np
 import os
 from collections import defaultdict
-
-# Hàm vẽ tên và khung khuôn mặt
+'''
+    face_recognition: Đây là một thư viện để nhận dạng khuôn mặt. 
+Nó cung cấp các chức năng nhận diện khuôn mặt và mã hóa khuôn mặt.
+    cv2: Đây là thư viện OpenCV, là một thư viện thị giác máy tính phổ biến.
+Nó được sử dụng cho các tác vụ xử lý hình ảnh và video.
+    numpy: Thư viện này cung cấp hỗ trợ cho các mảng và hàm toán học, 
+thường được sử dụng trong các tác vụ xử lý hình ảnh.
+    os: Thư viện này cung cấp một cách để tương tác với hệ điều hành, 
+chẳng hạn như đọc các tệp từ đĩa.
+    defaultdict: Đây là một lớp từ mô-đun cung cấp một đối tượng 
+giống như từ điển với giá trị mặc định cho các khóa bị thiếu.collections
+'''
+# Hàm vẽ tên và khung khuôn mặt,Xác định một hàm để vẽ khung xung quanh khuôn mặt có tên:
 def draw_name_frame(frame, top, right, bottom, left, name):
     #Hàm draw_name_frame bạn đang sử dụng trong chương trình của mình được thiết kế để vẽ khung và hiển thị tên của người được nhận diện trên ảnh.
     cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
     cv2.rectangle(frame, (left, bottom - 15), (right, bottom), (0, 0, 255), cv2.FILLED)
     font = cv2.FONT_HERSHEY_DUPLEX
     cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
-
-# Define thông tin của các người cần nhận diện
+'''
+Chức năng này lấy hình ảnh đầu vào và tọa độ của khuôn mặt được phát hiện, 
+cùng với tệp .frame(top, right, bottom, left)name
+Sau đó, nó vẽ một hình chữ nhật màu đỏ xung quanh khuôn mặt, với tên hiển thị bên dưới nó.
+'''
+# Define thông tin của các người cần nhận diện,Xác định danh sách dữ liệu của mọi người (tên và đường dẫn hình ảnh):
 people_data = [
     {"name": "Khiem", "image_path": "pic/hinhkhiem/z4700043387622_da39bf2c4f39c337a5bb0061d643a6f4.jpg"},
     {"name": "Hoang", "image_path": "pic/hinhhoang/z4694981970053_60b82639be2acda236a5afaf6397b3ff.jpg"},
 ]
+#Danh sách này chứa từ điển,
+# mỗi từ điển đại diện cho một người với tên của họ và đường dẫn đến tệp hình ảnh của họ.
 
-# Tải và mã hóa khuôn mặt của các người đã lưu trữ
+#Khởi tạo danh sách để lưu trữ các tên đã biết và mã hóa khuôn mặt tương ứng của chúng:
 known_names = []
 known_name_encodings = []
 
 for person in people_data:
     name = person["name"]
     encoding = fr.face_encodings(fr.load_image_file(person["image_path"]))[0]
-
     known_name_encodings.append(encoding)
     #Dòng này thêm mã hóa khuôn mặt của người đó vào danh sách known_name_encodings.
     known_names.append(name)
     #Dòng này thêm tên của người đó vào danh sách known_names.
+'''
+Vòng lặp này lặp lại trên mỗi người trong .people_data
+Đối với mỗi người, nó tải hình ảnh của họ, 
+tính toán mã hóa khuôn mặt và thêm tên và mã hóa vào danh sách tương ứng.
+'''
+
 # Tải ảnh test
-test_image_path = "pic/nguoivsdongvat/tranning/1h.jpg"
+test_image_path = "pic/nguoivsdongvat/tranning/0051.jpg"
 frame = cv2.imread(test_image_path)
 
-# Nhận diện khuôn mặt trong ảnh test
+#Sử dụng face_recognition để tìm vị trí khuôn mặt và mã hóa trong hình ảnh thử nghiệm:
+# Nhận diện khuôn mặt trong ảnh test, fr.face_locations(frame) Tìm vị trí của các khuôn mặt trong hình ảnh.
 face_locations = fr.face_locations(frame)
 #fr.face_locations() tìm kiếm vị trí của các khuôn mặt trong hình ảnh.
 face_encodings = fr.face_encodings(frame, face_locations)
 #mã hóa các khuôn mặt đã tìm thấy thành một vectơ đặc trưng. Mỗi vectơ đặc trưng tương ứng với một khuôn mặt.
+#fr.face_encodings(frame, face_locations) tính toán mã hóa khuôn mặt cho các khuôn mặt được phát hiện.
 
-THRESHOLD = 0.4  # Giá trị ngưỡng (có thể điều chỉnh)
+THRESHOLD = 0.4  # Giá trị ngưỡng (có thể điều chỉnh),Điều này đặt ra một ngưỡng cho nhận dạng khuôn mặt.
+# Ngưỡng càng thấp, tiêu chí phù hợp càng khắt khe.
 
-# Nhận diện khuôn mặt và vẽ thông tin người
+# Khởi tạo danh sách để lưu trữ tên và tọa độ khuôn mặt đã phát hiện:
 detected_names = []
-detected_faces = []  # Danh sách tọa độ các khuôn mặt đã nhận diện
+detected_faces = []
+# Danh sách tọa độ các khuôn mặt đã nhận diện
 # Tạo một từ điển để lưu trữ các đối tượng theo class
 detected_objects_by_class = defaultdict(list)
+
 for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
     matches = fr.compare_faces(known_name_encodings, face_encoding, tolerance=THRESHOLD)
     #Dòng này so sánh mã hóa khuôn mặt của khuôn mặt hiện tại (face_encoding) với danh sách các mã hóa khuôn mặt đã biết (known_name_encodings).
     #fr.compare_faces trả về một danh sách các giá trị True hoặc False tương ứng với việc so sánh khuôn mặt hiện tại với các khuôn mặt đã biết.
     #tolerance=THRESHOLD cho phép bạn chỉ định một ngưỡng (threshold) cho phép sai số trong việc so sánh khuôn mặt.
     name = "nguoi khac"
-
     for i, match in enumerate(matches):
         if match:
             name = known_names[i]
             break
-
-
     detected_names.append(name)
     draw_name_frame(frame, top, right, bottom, left, name)
     detected_faces.append((top, right, bottom, left))  # Lưu tọa độ khuôn mặt
@@ -195,7 +219,6 @@ if num_faces > num_people:
 else:
     print(f"Số lượng người nhận diện: {num_people}")
     detected_objects = {}
-
 
     def detect_object(obj):
         # Assume obj has a unique_id and other attributes
